@@ -5,6 +5,7 @@ angular.module('pizzApp', [
     'ngRoute',
     'ui.bootstrap',
     'firebase',
+    'uiGmapgoogle-maps',
     'pizzApp.login',
     'pizzApp.pizza.list',
     'pizzApp.pizza.details',
@@ -30,6 +31,13 @@ angular.module('pizzApp', [
 .config(['$routeProvider', function ($routeProvider) {
     $routeProvider.otherwise({redirectTo: '/pizzas'});
 }])
+.config(function(uiGmapGoogleMapApiProvider) {
+    uiGmapGoogleMapApiProvider.configure({
+        //  key: 'your api key', to avoid query limit & Co.
+        //  v: '3.23', defaults to latest 3.x
+        //  libraries: 'weather,geometry,visualization'
+    });
+})
 
 // Check if logged in
 .run(['$rootScope', '$location', function ($rootScope, $location) {

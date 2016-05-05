@@ -86,3 +86,95 @@
     <script src="../lib/google-maps/angular-simple-logger.js"></script>
     <script src="../lib/google-maps/angular-google-maps.min.js"></script>
     ```
+
+2. Add the just included set of directives (`uiGmapgoogle-maps`) to the main module of our application (`app.js`).
+
+3. [*Optionally*] Add configuration parameters for Google Maps
+
+    ```
+    .config(function(uiGmapGoogleMapApiProvider) {
+        uiGmapGoogleMapApiProvider.configure({
+            //  key: 'your api key', to avoid query limit & Co.
+            //  v: '3.23', defaults to latest 3.x
+            //  libraries: 'weather,geometry,visualization'
+        });
+    })
+    ```
+
+4. Add the Google Maps directive to the `pizza-list.html` view (in a dedicated `div`):
+
+    ```
+    <div class="col-xs-12 col-md-8 map-container">
+        <ui-gmap-google-map center="map.center" zoom="map.zoom" >
+        </ui-gmap-google-map>
+    </div>
+    ```
+
+5. Update the CSS to allow the embedded map to be "truly" responsive.
+
+6. Add a container for markers inside the `ui-gmap-google-map`:
+
+    ```
+    ...
+    <ui-gmap-markers models="pizzaMarkers" coords="'self'" icon="'icon'" >
+        <ui-gmap-windows show="show">
+            <div ng-non-bindable>{{title}}</div>
+        </ui-gmap-windows>
+    </ui-gmap-markers>
+    ...
+    ```
+
+7. Create the map and the markers in the `pizza-list.js` controller, starting from the data available from Firebase:
+
+    ```
+    $scope.pizzaMarkers = [];
+
+    // When the pizza list has been loaded completely from Firebase...
+    $scope.pizzas.$loaded().then(function () {
+        // When Google Maps is ready...
+        uiGmapGoogleMapApi.then(function(maps) {
+            // init
+            $scope.pizzaMarkers= [];
+            var geocoder = new maps.Geocoder();
+
+            // create the map
+            $scope.map = { center: { latitude: 45.06, longitude: 7.67 }, zoom: 14 };
+
+            // create the markers on the map
+            for (var i = 0; i < $scope.pizzas.length; i++) {
+                createMarker(i, $scope.pizzas[i], geocoder);
+            }
+        });
+    });
+    ```
+
+    Remember to add `uiGmapGoogleMapApi` in the controller's dependecies!
+
+8. Add a function, in the `pizza-list.js` controller, to create a *single* marker in the map:
+
+    ```
+    var createMarker = function (index, pizzaInfo, geocoder) {
+        // geocode function: get an address from GPS coordinates
+        geocoder.geocode({'address': pizzaInfo.address}, function(results, status) {
+            if (status === google.maps.GeocoderStatus.OK) {
+                var marker = {
+                    latitude: results[0].geometry.location.lat(),
+                    longitude: results[0].geometry.location.lng(),
+                    title: pizzaInfo.pizzeria
+                };
+                marker['id'] = index; // mandatory id
+                $scope.pizzaMarkers.push(marker);
+            } else {
+                $log.error('Geocode was not successful for the following reason: ' + status);
+            }
+        });
+    }
+    ```
+
+    The `geocode()` function get an address (street name *and* city) and try to convert it into GPS coords. The reverse function is also available, if needed.
+
+9. Perform the same operation for the `pizza-detail` controller and view. To load a *single* marker in the HTML instead of a collection of them, you can use the `<ui-gmap-marker>` tag.
+
+    ```
+    <ui-gmap-marker coords="marker.coords" idkey="0"></ui-gmap-marker>
+    ```

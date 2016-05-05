@@ -8,7 +8,7 @@
     </div>
 </div>
 
-<div class="row">
+<div class="row map-row">
     <div class="col-xs-12 col-md-4">
         <img class="img-responsive img-circle center-block" ng-src="{{pizza.image}}" alt="{{pizza.name}}" >
     </div>
@@ -20,5 +20,10 @@
                 <address>{{ pizza.address }}</address>
             </div>
         </div>
+
+        <ui-gmap-google-map center="map.center" zoom="map.zoom" >
+            <ui-gmap-marker coords="marker.coords" idkey="0">
+            </ui-gmap-marker>
+        </ui-gmap-google-map>
     </div>
 </div>
